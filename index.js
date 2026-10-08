@@ -19,7 +19,7 @@ const MODULE = 'alternate_universe';
 const FIELD = 'alternateUniverse';
 const LOG = '[AlternateUniverse]';
 const TITLE = 'Alternate Universe';
-const VERSION = '1.0.0'; // keep in sync with manifest.json
+const VERSION = '1.1.0'; // keep in sync with manifest.json
 const MENU_ID = 'option_alternate_universe';
 
 const DEFAULTS = Object.freeze({
@@ -80,6 +80,27 @@ const parseTagList = text => [...new Set(String(text ?? '')
     .split(/[\s,]+/)
     .map(x => x.replace(/^<\/?|\/?>$/g, '').trim())
     .filter(Boolean))];
+
+/** Plain HTML that stories use for formatting; not worth offering for removal. */
+const HTML_TAGS = new Set(('a abbr b blockquote br center code col colgroup dd del details div dl dt em font h1 h2 h3 h4 h5 h6 hr '
+    + 'i img ins kbd li mark ol p pre q s small span strike strong style sub summary sup table tbody td tfoot th thead tr u ul').split(' '));
+
+/** Non-HTML tag names left in the messages, most frequent first. */
+function leftoverTags(chat) {
+    const counts = new Map();
+    const scan = text => {
+        if (typeof text !== 'string') return;
+        for (const m of text.matchAll(/<([A-Za-z][\w:.-]*)[^>]*>/g)) {
+            const name = m[1].toLowerCase();
+            if (!HTML_TAGS.has(name)) counts.set(name, (counts.get(name) ?? 0) + 1);
+        }
+    };
+    for (const msg of chat) {
+        scan(msg?.mes);
+        if (msg?.extra?.reasoning) scan(msg.extra.reasoning);
+    }
+    return [...counts].sort((a, b) => b[1] - a[1]);
+}
 
 const presetManager = () => ctx().getPresetManager?.() ?? null;
 const currentPresetName = () => presetManager()?.getSelectedPresetName?.() || '';
@@ -375,6 +396,10 @@ function dialogHtml({ opts, scripts, lastId, presets, current }) {
                 <span>ลบทั้งก้อน <small class="au-hint">ชื่อแท็ก คั่นด้วยจุลภาคหรือขึ้นบรรทัดใหม่ เช่น status, summary</small></span>
                 <textarea class="text_pole" name="removeTags" rows="2">${esc(opts.removeTags)}</textarea>
             </label>
+            <div class="au-leftover">
+                <span class="au-hint">แท็กที่ยังเหลือหลังล้าง (แตะเพื่อเพิ่มในช่องลบทั้งก้อน)</span>
+                <div class="au-chips"></div>
+            </div>
             <label class="au-field">
                 <span>ลบแค่แท็ก เก็บข้อความข้างใน</span>
                 <textarea class="text_pole" name="unwrapTags" rows="2">${esc(opts.unwrapTags)}</textarea>
@@ -467,6 +492,18 @@ function renderPreview(root, scripts) {
     while (idx > 0 && (snapshot[idx]?.is_user || snapshot[idx]?.is_system)) idx--;
     const sample = snapshot[idx];
     pre.textContent = sample ? `#${idx} ${sample.name ?? ''}\n\n${sample.mes || '(ว่าง)'}` : '(ไม่มีข้อความ)';
+
+    const tags = leftoverTags(snapshot);
+    root.querySelector('.au-chips').innerHTML = tags.length
+        ? tags.map(([name, n]) => `<button type="button" class="menu_button au-chip" data-tag="${esc(name)}">${esc(name)} <small>×${n}</small></button>`).join('')
+        : '<span class="au-empty">ไม่เหลือแล้ว</span>';
+}
+
+function addRemoveTag(root, name) {
+    const box = root.querySelector('[name="removeTags"]');
+    if (parseTagList(box.value).includes(name)) return;
+    box.value = box.value.trim() ? `${box.value.trim()}, ${name}` : name;
+    box.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 async function openDialog() {
@@ -493,6 +530,10 @@ async function openDialog() {
     const refresh = debounce(() => renderPreview(root, scripts), 200);
     root.addEventListener('input', refresh);
     root.addEventListener('change', refresh);
+    root.addEventListener('click', e => {
+        const chip = e.target.closest?.('.au-chip');
+        if (chip) addRemoveTag(root, chip.dataset.tag);
+    });
     renderPreview(root, scripts);
 
     const { callGenericPopup, POPUP_TYPE, POPUP_RESULT } = c;

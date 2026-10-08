@@ -121,3 +121,26 @@
     border-radius: 6px;
     background: var(--black30a, rgba(0, 0, 0, 0.3));
 }
+
+.au-dialog .au-leftover {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.au-dialog .au-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.au-dialog .au-chip {
+    margin: 0;
+    padding: 2px 8px;
+    width: auto;
+    font-size: 0.9em;
+}
+
+.au-dialog .au-chip small {
+    opacity: 0.65;
+}
