@@ -1,0 +1,12 @@
+{
+    "display_name": "Alternate Universe",
+    "loading_order": 2200,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "Kitima",
+    "version": "1.0.0",
+    "homePage": "https://github.com/inathael-58/SillyTavern-Alternate-Universe",
+    "auto_update": false
+}

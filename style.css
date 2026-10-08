@@ -1,0 +1,123 @@
+/* Alternate Universe — dialog */
+
+.au-dialog {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.au-dialog .au-title {
+    margin: 0;
+    text-align: center;
+}
+
+.au-dialog .au-lead {
+    margin: 0;
+    text-align: center;
+    opacity: 0.85;
+}
+
+.au-dialog .au-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+}
+
+.au-dialog section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 10px;
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 8px;
+    min-width: 0;
+}
+
+.au-dialog h4 {
+    margin: 6px 0 2px;
+    font-size: 1em;
+}
+
+.au-dialog section > h4:first-child {
+    margin-top: 0;
+}
+
+.au-dialog .au-hint {
+    margin: 0;
+    opacity: 0.65;
+    font-size: 0.85em;
+    font-weight: normal;
+}
+
+.au-dialog .au-row {
+    align-items: flex-start;
+    margin: 0;
+}
+
+.au-dialog .au-row input {
+    margin-top: 0.2em;
+    flex-shrink: 0;
+}
+
+.au-dialog .au-group {
+    margin-top: 4px;
+    font-size: 0.85em;
+    font-weight: bold;
+    opacity: 0.75;
+}
+
+.au-dialog .au-scripts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 30vh;
+    overflow-y: auto;
+}
+
+.au-dialog .au-empty {
+    font-style: italic;
+    opacity: 0.65;
+}
+
+.au-dialog .au-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.au-dialog .au-field textarea {
+    margin: 0;
+    min-height: 2.6em;
+    resize: vertical;
+}
+
+.au-dialog .au-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.au-dialog .au-inline > span {
+    white-space: nowrap;
+}
+
+.au-dialog .au-inline input,
+.au-dialog .au-inline select {
+    width: auto;
+    flex: 1 1 8em;
+    margin: 0;
+}
+
+.au-dialog .au-preview {
+    margin: 0;
+    max-height: 25vh;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.9em;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--black30a, rgba(0, 0, 0, 0.3));
+}
