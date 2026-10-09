@@ -12,14 +12,16 @@
  *     stored text, so the branch holds exactly what the current preset sends
  *   • removes reasoning (parsed extra.reasoning and inline <think> blocks)
  *   • removes or unwraps extra tags, per preset (preset.extensions.alternateUniverse)
- * then optionally switches to another preset.
+ * then optionally switches to another preset, and points the chat-level preset
+ * locks the branch copied from its parent (Preset Formatting, Character Locks)
+ * at that preset so they do not switch back.
  */
 
 const MODULE = 'alternate_universe';
 const FIELD = 'alternateUniverse';
 const LOG = '[AlternateUniverse]';
 const TITLE = 'Alternate Universe';
-const VERSION = '1.1.0'; // keep in sync with manifest.json
+const VERSION = '1.2.0'; // keep in sync with manifest.json
 const MENU_ID = 'option_alternate_universe';
 
 const DEFAULTS = Object.freeze({
@@ -32,6 +34,7 @@ const DEFAULTS = Object.freeze({
     includeUser: true,
     swipes: 'all',
     rememberPerPreset: true,
+    lockBranch: true,
     uncheckedScripts: [],
 });
 
@@ -104,6 +107,48 @@ function leftoverTags(chat) {
 
 const presetManager = () => ctx().getPresetManager?.() ?? null;
 const currentPresetName = () => presetManager()?.getSelectedPresetName?.() || '';
+
+/** Preset Formatting 1.4+ can lock a chat to a preset (chat_metadata.presetFormatting.lockedPreset). */
+const PF_FIELD = 'presetFormatting';
+const hasPresetLock = () => typeof globalThis.PresetFormatting?.getChatLock === 'function';
+
+/**
+ * A branch copies its parent's chat_metadata, including any chat-level preset lock. Left alone, that
+ * lock switches straight back to the old preset on every chat reload, and with two locks fighting the
+ * chat reloads over and over. Point them at the preset the branch is for.
+ * @param {object} meta branch chat_metadata
+ * @param {string} target preset the branch switches to
+ * @param {boolean} lock lock the branch to it with Preset Formatting (otherwise drop that lock)
+ */
+function relockBranch(meta, target, lock) {
+    const pf = meta[PF_FIELD];
+    if (lock) {
+        meta[PF_FIELD] = { ...(pf && typeof pf === 'object' ? pf : {}), lockedPreset: target };
+    } else if (pf?.lockedPreset) {
+        delete pf.lockedPreset;
+        if (!Object.keys(pf).length) delete meta[PF_FIELD];
+    }
+    // Character Locks (STCL) keeps a preset + connection profile pair per chat: keep the connection.
+    const stcl = meta.STCL;
+    if (stcl && typeof stcl === 'object' && stcl.preset) {
+        meta.STCL = { ...stcl, preset: target, savedAt: new Date().toISOString() };
+    }
+}
+
+/** Resolves true when `event` fires within `ms`, false otherwise. */
+function waitForEvent(event, ms) {
+    const { eventSource } = ctx();
+    return new Promise(resolve => {
+        const done = fired => {
+            clearTimeout(timer);
+            eventSource.removeListener(event, onEvent);
+            resolve(fired);
+        };
+        const onEvent = () => done(true);
+        const timer = setTimeout(() => done(false), ms);
+        eventSource.on(event, onEvent);
+    });
+}
 
 // ---------------------------------------------------------------- regex engine
 
@@ -433,6 +478,7 @@ function dialogHtml({ opts, scripts, lastId, presets, current }) {
                     ${presetOptions}
                 </select>
             </label>
+            ${hasPresetLock() ? checkbox('lockBranch', 'ล็อก preset ใหม่ไว้กับ branch นี้', 'ใช้ล็อกของ Preset Formatting เปิด branch นี้เมื่อไหร่จะได้ preset ใหม่ ส่วนล็อกเดิมที่ติดมาจากแชทแม่จะถูกเปลี่ยนตามเสมอ') : ''}
         </section>
         </div>
 
@@ -458,6 +504,7 @@ function readDialog(root) {
         swipes: q('swipes').value,
         fromId: Number(q('fromId').value),
         targetPreset: q('targetPreset').value,
+        lockBranch: q('lockBranch')?.checked ?? settings().lockBranch, // not shown without Preset Formatting 1.4+
         uncheckedScripts: unchecked,
     };
 }
@@ -595,19 +642,27 @@ async function branchAndClean(opts, scripts, sourcePreset) {
         fromMessage: fromId,
         fromPreset: sourcePreset || null,
     };
+
+    const pm = presetManager();
+    let target = opts.targetPreset && opts.targetPreset !== currentPresetName() ? opts.targetPreset : '';
+    const targetValue = target ? pm?.findPreset?.(target) : null;
+    if (target && (targetValue === undefined || targetValue === null)) {
+        toast.warn(`ไม่พบ preset "${target}"`);
+        target = '';
+    }
+    if (target) relockBranch(after.chatMetadata, target, !!opts.lockBranch && hasPresetLock());
     await after.saveChat();
-    await after.reloadCurrentChat();
 
     let switched = '';
-    if (opts.targetPreset && opts.targetPreset !== currentPresetName()) {
-        const pm = presetManager();
-        const value = pm?.findPreset?.(opts.targetPreset);
-        if (value !== undefined && value !== null) {
-            await pm.selectPreset(value);
-            switched = ` แล้วเปลี่ยนเป็น ${opts.targetPreset}`;
-        } else {
-            toast.warn(`ไม่พบ preset "${opts.targetPreset}"`);
-        }
+    if (target) {
+        // Switching preset may apply a Regex Preset (Preset Formatting / connection profile), which
+        // reloads the chat anyway; only reload ourselves when it did not, so the branch loads once.
+        const reloaded = waitForEvent(ctx().event_types.CHAT_CHANGED, 1500);
+        await pm.selectPreset(targetValue);
+        switched = ` แล้วเปลี่ยนเป็น ${target}`;
+        if (!(await reloaded)) await ctx().reloadCurrentChat();
+    } else {
+        await after.reloadCurrentChat();
     }
 
     toast.ok(`สร้าง "${branchName}" ล้างไป ${r.changed} ข้อความ${plan.stripReasoning && r.reasoning ? ` ลบ reasoning ${r.reasoning}` : ''}${switched}`);
