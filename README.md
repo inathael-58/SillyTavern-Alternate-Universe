@@ -25,6 +25,7 @@ Extensions → Install extension → วาง URL ของ repo นี้
    - **จำรายชื่อแท็กไว้กับ preset นี้** บันทึกลงไฟล์ preset (`extensions.alternateUniverse`) เปิดครั้งหน้าบน preset เดียวกันจะเติมให้เอง และติดไปด้วยตอน export preset
 4. **ขอบเขต** เลือกได้ว่าจะแตกจากข้อความที่เท่าไหร่ (ค่าเริ่มต้นคือข้อความล่าสุด) จะล้างข้อความของผู้ใช้ด้วยไหม และจะล้างทุก swipe หรือเก็บไว้แค่ swipe ที่เลือกอยู่
 5. **หลังล้างเสร็จ** เลือก preset ที่จะเปลี่ยนไปใช้ได้เลย
+   - **ล็อก preset ใหม่ไว้กับ branch นี้** (มีเมื่อใช้ [Preset Formatting](https://github.com/inathael-58/SillyTavern-PresetFormatting) 1.4 ขึ้นไป) เปิด branch นี้เมื่อไหร่ก็จะได้ preset ใหม่ ล็อกแค่ preset ไม่แตะ connection
 
 กล่อง **ตัวอย่าง** ด้านล่างแสดงข้อความ AI ล่าสุดหลังล้าง และนับให้ว่าจะเปลี่ยนกี่ข้อความ อัปเดตทันทีที่แก้ค่า
 
@@ -34,6 +35,10 @@ Extensions → Install extension → วาง URL ของ repo นี้
 
 - ต้องกด **ก่อน**เปลี่ยน preset เพราะ extension ใช้ regex ที่เปิดอยู่ตอนนั้น ถ้าเปลี่ยนไปแล้ว ให้สลับกลับไป preset เดิมก่อนค่อยกด
 - ถ้าใช้ [Preset Formatting](https://github.com/inathael-58/SillyTavern-PresetFormatting) ตอนเปลี่ยน preset ในขั้นที่ 5 Regex Preset ของ preset ใหม่จะถูกตั้งให้อัตโนมัติเหมือนเปลี่ยนเอง
+- branch ก๊อป `chat_metadata` ของแชทแม่มาทั้งหมด รวมถึงล็อก preset ด้วย ถ้าเลือก preset ใหม่ในขั้นที่ 5 ล็อกที่ติดมาจะถูกเปลี่ยนให้ตรงกับ preset ใหม่ ไม่อย่างนั้นมันจะสลับกลับไป preset เดิมทุกครั้งที่แชทรีโหลด และรีโหลดวนซ้ำ
+  - ล็อกของ Preset Formatting: เปลี่ยนเป็น preset ใหม่ (หรือเอาออกถ้าไม่ติ๊กให้ล็อก)
+  - ล็อกต่อแชทของ [Character Locks](https://github.com/aikohanasaki/SillyTavern-CharacterLocks) (STCL): เปลี่ยนแค่ preset ส่วน connection profile เก็บไว้ตามเดิม ล็อกต่อตัวละครของ STCL แก้ให้ไม่ได้ ถ้าการ์ดนั้นมีล็อกต่อตัวละครและ STCL ให้ความสำคัญกับตัวละครก่อนแชท มันจะยังดึง preset เดิมกลับมา
+- หลังเปลี่ยน preset แชทจะโหลดใหม่แค่ครั้งเดียว (ถ้า preset ใหม่ตั้ง Regex Preset ซึ่งทำให้แชทโหลดใหม่อยู่แล้ว ก็จะไม่โหลดซ้ำอีกรอบ)
 - regex แบบ *Alter Chat Display* (แสดงผลอย่างเดียว) จะไม่ถูกใช้ เพราะมักแปลงแท็กเป็น HTML สำหรับแสดงผล ไม่ได้มีไว้ส่ง model
 - ถ้าข้อความเคยผ่านหลาย preset ปนกัน regex ในขั้นที่ 1 จะล้างได้แค่ส่วนที่ preset ปัจจุบันรู้จัก ส่วนที่เหลือใส่ไว้ในขั้นที่ 3
 - ถ้าใช้ extension ที่สรุปความจำ (เช่น Memory Hub) แล้วสรุปอ้างถึงแท็กเก่า อาจต้องสร้างสรุปใหม่ใน branch
