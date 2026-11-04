@@ -144,3 +144,9 @@
 .au-dialog .au-chip small {
     opacity: 0.65;
 }
+
+/* version check + hard refresh */
+.au_verline { font-size: 0.9em; opacity: 0.85; margin: 2px 0 6px; }
+.au_verbtns { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.au_verbtns .menu_button { width: auto; margin: 0; font-size: 0.95em; }
+.au_stale { color: #f5a524; font-weight: 600; }
