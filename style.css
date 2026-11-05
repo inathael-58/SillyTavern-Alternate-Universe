@@ -107,7 +107,14 @@
 .au-dialog .au-inline select {
     width: auto;
     flex: 1 1 8em;
+    min-width: 0;
+    max-width: 100%;
     margin: 0;
+}
+
+/* long preset names would otherwise size the select past the section edge */
+.au-dialog .au-inline select {
+    text-overflow: ellipsis;
 }
 
 .au-dialog .au-preview {
