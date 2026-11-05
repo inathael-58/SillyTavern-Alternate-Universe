@@ -21,7 +21,7 @@ const MODULE = 'alternate_universe';
 const FIELD = 'alternateUniverse';
 const LOG = '[AlternateUniverse]';
 const TITLE = 'Alternate Universe';
-const VERSION = '1.2.1'; // keep in sync with manifest.json
+const VERSION = '1.2.2'; // keep in sync with manifest.json
 const MENU_ID = 'option_alternate_universe';
 
 const DEFAULTS = Object.freeze({
